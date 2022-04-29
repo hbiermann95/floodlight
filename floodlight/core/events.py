@@ -4,8 +4,10 @@ import warnings
 
 import numpy as np
 import pandas as pd
+import matplotlib
 
 from floodlight.core.definitions import essential_events_columns, protected_columns
+from floodlight.vis.events import plot_events
 
 
 @dataclass
@@ -265,3 +267,62 @@ class Events:
                     filtered_events = filtered_events[filtered_events[column] == value]
 
         return filtered_events
+
+    def plot(
+        self,
+        ax: matplotlib.axes = None,
+        **kwargs,
+    ) -> matplotlib.axes:
+        """Plots an Events object on a matplotlib.axes.
+
+        Parameters
+        ----------
+        ax: matplotlib.axes, optional
+            Axes from matplotlib library on which the playing field is plotted. If ax is
+            None, a default-sized matplotlib.axes object is created.
+        kwargs:
+            Optional keyworded arguments {'linewidth', 'zorder', 'scalex', 'scaley'}
+            which can be used for the plot functions from matplotlib. The kwargs are
+            only passed to all the plot functions of matplotlib.
+        Returns
+        -------
+        axes: matplotlib.axes
+            Plot function for specified pitch which returns a matplotlib.axes object.
+        Notes
+        -----
+        The kwargs are only passed to the plot functions of matplotlib. To customize the
+        plots have a look at `matplotlib
+        <https://matplotlib.org/3.5.0/api/_as_gen/matplotlib.axes.Axes.plot.html>`_.
+        For example in order to modify the linewidth pass a float to the keyworded
+        argument 'linewidth'. The same principle applies to other kwargs like
+        'zorder', 'scalex' and 'scaley'.
+        Examples
+        --------
+        >>> import matplotlib.pyplot as plt
+        >>> from floodlight.core.events import Events
+        >>> from floodlight.core.pitch import Pitch
+        >>> from floodlight.io.datasets import ToyDataset
+        >>> # create toy dataset
+        >>> dataset = ToyDataset()
+        # get one sample
+        >>> (
+        >>>     xy_home,
+        >>>     xy_away,
+        >>>     xy_ball,
+        >>>     events_home,
+        >>>     events_away,
+        >>>     possession,
+        >>>     ballstatus,
+        >>> ) = dataset.get(segment="HT1")
+        >>> # plot pitch object
+        >>> dataset.get_pitch()
+        >>> # plot events object
+        >>> events_home.plot()
+        >>> plt.show()
+        """
+        if "at_x" in self.protected_missing or "at_y" in self.protected_missing:
+            raise ValueError(
+                "Cannot plot Events object missing the columns 'at_x' " "or 'at_y'"
+            )
+
+        return plot_events(self, ax=ax, **kwargs)
